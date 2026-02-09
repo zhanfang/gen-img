@@ -73,6 +73,12 @@ image.save("output.png")
 
 ## Components
 
+For detailed documentation of each component, please refer to:
+- **[UNet Architecture](docs/unet.md)**
+- **[VAE (Variational Autoencoder)](docs/vae.md)**
+- **[Text Encoder](docs/text_encoder.md)**
+- **[Scheduler & Diffusion Process](docs/scheduler.md)**
+
 ### 1. UNet
 
 The UNet model is used to predict noise in the latent space. It consists of:
