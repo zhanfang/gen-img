@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- 为核心组件（UNet, VAE, TextEncoder, DiffusionProcess, StableDiffusionPipeline）添加了详细的中文文档和注释。
+- 完善了代码结构和说明，方便学习和理解。
+
 ## [0.1.0] - 2026-02-09
 
 ### Added
