@@ -65,6 +65,14 @@ This uses the `diffusers` library to download and run `runwayml/stable-diffusion
 python examples/generate_with_diffusers.py "a cat sitting on a bench"
 ```
 
+### 3. Run Training Demo (Loss Decrease Visualization)
+This script trains the model on a single image ("overfitting") to demonstrate the learning capability.
+It will generate `target_image.png` (Goal), `output_before_train.png` (Noise), and `output_after_train.png` (Learned).
+
+```bash
+python examples/train_demo.py
+```
+
 ### Using the pipeline directly
 
 ```python
