@@ -27,7 +27,7 @@ class StableDiffusionPipeline:
         self.unet = UNet(
             in_channels=4,
             out_channels=4,
-            features=[32, 64, 128, 256],
+            features=[64, 128, 256, 512],
             text_emb_dim=self.text_encoder.get_text_embedding_dim()
         ).to(device)
         self.diffusion = DiffusionProcess(num_steps=1000, device=device)
@@ -96,12 +96,14 @@ class StableDiffusionPipeline:
         将 PyTorch 张量转换为 PIL 图像。
         
         Args:
-            tensor (torch.Tensor): 形状为 (1, 3, H, W) 的张量，值范围 [0, 1]。
+            tensor (torch.Tensor): 形状为 (1, 3, H, W) 的张量，值范围通常为 [-1, 1]。
             
         Returns:
             PIL.Image.Image: PIL 图像对象。
         """
         tensor = tensor.squeeze(0).cpu().detach()
-        tensor = (tensor * 255).clamp(0, 255).numpy().astype(np.uint8)
+        # 将 [-1, 1] 范围映射到 [0, 1]
+        tensor = (tensor / 2 + 0.5).clamp(0, 1)
+        tensor = (tensor * 255).numpy().astype(np.uint8)
         tensor = tensor.transpose(1, 2, 0)
         return Image.fromarray(tensor)

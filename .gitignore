@@ -163,3 +163,4 @@ output_*.png
 *.pt
 *.ckpt
 *.safetensors
+temp/

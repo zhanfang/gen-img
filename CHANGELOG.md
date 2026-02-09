@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Created `docs/training_demo_explained.md`: detailed documentation explaining training demo principles, debugging process, and key technical solutions.
+- Added `temp/` to `.gitignore` and updated scripts to save generated images there.
+
+### Changed
+- **Optimization & Fixes**:
+  - **VAE**: Replaced `ConvTranspose2d` with `Upsample` + `Conv2d` in Decoder to eliminate checkerboard artifacts.
+  - **Pipeline**: Fixed `_tensor_to_pil` logic to correctly map `[-1, 1]` tensor to image, resolving color distortion issues.
+  - **Training Demo**:
+    - Replaced random VAE with `MockVAE` (using simple interpolation) to ensure meaningful latent representation.
+    - Removed VAE scaling factor to improve signal-to-noise ratio for faster convergence.
+    - Aligned inference steps (1000) with training schedule to fix "noise veil" issue.
+    - Updated script to output files to `temp/` directory.
+    - Implemented "Static Thresholding" (Clipping) in Diffusion sampling to prevent numerical explosion and black images.
+    - **Performance Boost**: Increased UNet capacity (channels: 64->128->256->512) and added CosineAnnealingLR scheduler, reducing final loss from ~0.02 to ~0.001.
+- **Documentation**:
+  - Created `docs/development_log.md`: A comprehensive narrative of the debugging and optimization journey.
+  - Enhanced component documentation with more detailed Chinese comments.
+
+### Added
 - 为核心组件（UNet, VAE, TextEncoder, DiffusionProcess, StableDiffusionPipeline）添加了详细的中文文档和注释。
 - 完善了代码结构和说明，方便学习和理解。
 

@@ -105,15 +105,18 @@ class Decoder(nn.Module):
         # 解码器层 (逐步上采样)
         for i in range(len(hidden_dims) - 1):
             self.layers.append(nn.Sequential(
-                nn.ConvTranspose2d(hidden_dims[i], hidden_dims[i + 1], kernel_size=3, stride=2, padding=1, output_padding=1),
+                # 使用 Upsample + Conv2d 替代 ConvTranspose2d 以避免棋盘伪影 (Checkerboard Artifacts)
+                nn.Upsample(scale_factor=2, mode='nearest'),
+                nn.Conv2d(hidden_dims[i], hidden_dims[i + 1], kernel_size=3, padding=1),
                 nn.GroupNorm(8, hidden_dims[i + 1]),
                 nn.SiLU()
             ))
         
-        # 最终层，映射回图像通道并使用 Sigmoid 激活 (将值限制在 [0, 1])
+        # 最终层，映射回图像通道 (不使用 Sigmoid，直接输出 [-1, 1] 范围的 raw logits)
         self.final_layer = nn.Sequential(
-            nn.ConvTranspose2d(hidden_dims[-1], out_channels, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.Sigmoid()
+            nn.Upsample(scale_factor=2, mode='nearest'),
+            nn.Conv2d(hidden_dims[-1], out_channels, kernel_size=3, padding=1),
+            # nn.Sigmoid() # 移除 Sigmoid，配合 Pipeline 中的 [-1, 1] -> [0, 1] 处理
         )
     
     def forward(self, x):

@@ -65,6 +65,8 @@ class DiffusionProcess:
         反向采样过程：去噪图像。
         p_theta(x_{t-1} | x_t) = N(x_{t-1}; mu_theta(x_t, t), sigma_t^2 * I)
         
+        引入了 "Static Thresholding" (Clipping) 来防止生成过程数值爆炸。
+        
         Args:
             model (nn.Module): 预测噪声的 UNet 模型。
             x_t (torch.Tensor): 时间步长 t 的噪声图像。
@@ -78,17 +80,28 @@ class DiffusionProcess:
             # 预测噪声
             noise_pred = model(x_t, t, text_emb)
             
-            # 计算均值
-            # mu_theta = 1/sqrt(alpha_t) * (x_t - beta_t/sqrt(1-alpha_bar_t) * epsilon_theta)
-            sqrt_recip_alphas_t = 1.0 / torch.sqrt(self.alphas[t])[:, None, None, None]
-            # 注意：这里的维度扩展是为了匹配 batch_size
-            
-            # 这里需要注意形状匹配，beta 和 cumprod 都是 (T,)，取值后是 (batch,)
-            # 需要扩展为 (batch, 1, 1, 1) 以进行广播
+            # 准备系数
             beta_t = self.betas[t][:, None, None, None]
             sqrt_one_minus_alphas_cumprod_t = self.sqrt_one_minus_alphas_cumprod[t][:, None, None, None]
+            sqrt_alphas_cumprod_t = self.sqrt_alphas_cumprod[t][:, None, None, None]
+            sqrt_recip_alphas_t = 1.0 / torch.sqrt(self.alphas[t])[:, None, None, None]
             
-            mean = sqrt_recip_alphas_t * (x_t - beta_t / sqrt_one_minus_alphas_cumprod_t * noise_pred)
+            # --- 改进：预测 x_0 并截断 (Clipping) ---
+            # 从 x_t 和预测的噪声反推 x_0
+            # x_t = sqrt(alpha_bar) * x_0 + sqrt(1-alpha_bar) * epsilon
+            # -> x_0 = (x_t - sqrt(1-alpha_bar) * epsilon) / sqrt(alpha_bar)
+            pred_x0 = (x_t - sqrt_one_minus_alphas_cumprod_t * noise_pred) / sqrt_alphas_cumprod_t
+            
+            # 将 x_0 截断到 [-1, 1] 范围
+            # 这是防止图像生成变成纯黑/纯白噪声的关键步骤
+            pred_x0 = torch.clamp(pred_x0, -1.0, 1.0)
+            
+            # 使用截断后的 x_0 重新计算“有效”的噪声预测值 (implied noise)
+            # epsilon_clipped = (x_t - sqrt(alpha_bar) * x_0_clipped) / sqrt(1-alpha_bar)
+            noise_pred_clipped = (x_t - sqrt_alphas_cumprod_t * pred_x0) / sqrt_one_minus_alphas_cumprod_t
+            
+            # 使用修正后的噪声计算均值
+            mean = sqrt_recip_alphas_t * (x_t - beta_t / sqrt_one_minus_alphas_cumprod_t * noise_pred_clipped)
             
             # 添加方差项 (对于 t > 0)
             if t[0] > 0:
