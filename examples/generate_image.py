@@ -14,6 +14,11 @@ def main():
     
     prompt = sys.argv[1]
     print(f"Generating image for prompt: {prompt}")
+    print("-" * 50)
+    print("WARNING: This script uses the custom implementation with RANDOM WEIGHTS.")
+    print("The output will be random NOISE, not a real image.")
+    print("This demonstrates the pipeline structure, not the trained model.")
+    print("-" * 50)
     
     # Initialize pipeline
     pipeline = StableDiffusionPipeline()

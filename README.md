@@ -45,10 +45,24 @@ pip install -e .
 
 ## Usage
 
-### Generate an image from text prompt
+### ⚠️ Important Note About Output
+**Since this project implements the model structure from scratch for learning purposes, the weights are RANDOMLY INITIALIZED.**
+**Therefore, the output of `examples/generate_image.py` will be RANDOM NOISE.**
+
+To see real generated images, you need to use pre-trained weights. We provide a script to demonstrate this using the official `diffusers` library.
+
+### 1. Run Custom Implementation (Random Noise)
+This verifies that the pipeline code runs correctly end-to-end.
 
 ```bash
 python examples/generate_image.py "a cat sitting on a bench"
+```
+
+### 2. Run with Pre-trained Weights (Real Image)
+This uses the `diffusers` library to download and run `runwayml/stable-diffusion-v1-5`.
+
+```bash
+python examples/generate_with_diffusers.py "a cat sitting on a bench"
 ```
 
 ### Using the pipeline directly
